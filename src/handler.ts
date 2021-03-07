@@ -1,7 +1,5 @@
-import { STATION_JSON_STRING } from "./stations";
+import { ALL_STATION_IDS, STATION_JSON_STRING } from "./stations";
 import { parseCountdown, render400, render404, renderJSON, toCountdown } from "./utils";
-
-const STNID_REGEX = /^\d{3}$/;
 
 export async function handleRequest(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -12,7 +10,7 @@ export async function handleRequest(request: Request): Promise<Response> {
     return render404();
   }
   const stnid = url.searchParams.get('stnid');
-  if (!stnid || !STNID_REGEX.test(stnid)) {
+  if (!stnid || !ALL_STATION_IDS.includes(stnid)) {
     return render400();
   }
   

@@ -812,3 +812,4 @@ export const stations = [
 ]
 
 export const STATION_JSON_STRING = JSON.stringify(stations)
+export const ALL_STATION_IDS = stations.map(s => s.stnid);

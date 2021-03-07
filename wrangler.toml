@@ -1,0 +1,7 @@
+name = "taipei-metro"
+type = "webpack"
+account_id = "e900d741d11cc149ef558782b242cef1"
+workers_dev = true
+route = ""
+zone_id = ""
+webpack_config = "webpack.config.js"

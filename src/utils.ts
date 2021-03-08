@@ -17,6 +17,8 @@ export function renderJSON(json: string | object, status = 200) {
 
 const COUNT_DOWN_REGEX = /^(\d{2}):(\d{2})$/;
 export function parseCountdown(input: string): number {
+  if (input === '59:50*') return Number.POSITIVE_INFINITY;
+
   const result = COUNT_DOWN_REGEX.exec(input);
   if (!result) throw new Error('input is not in 00:00 format');
 
@@ -27,6 +29,8 @@ export function parseCountdown(input: string): number {
 }
 
 export function toCountdown(seconds: number): string {
+  if (seconds === Number.POSITIVE_INFINITY) return '營運時間已過'
+
   let min: number | string = Math.floor(seconds / 60);
   let sec: number | string = seconds % 60;
 

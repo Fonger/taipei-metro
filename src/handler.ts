@@ -1,5 +1,6 @@
 import { ALL_STATION_IDS, STATION_JSON_STRING } from "./stations";
-import { parseCountdown, render400, render404, renderJSON, toCountdown } from "./utils";
+import { NextTrainInfo, Output, RootInfo } from "./types";
+import { fetchNextTrain, parseCountdown, render400, render404, renderJSON, toCountdown } from "./utils";
 
 export async function handleRequest(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -14,34 +15,7 @@ export async function handleRequest(request: Request): Promise<Response> {
     return render400();
   }
   
-  const response = await fetch('https://ws.metro.taipei/trtcappweb/traintime.asmx', {
-    method: 'POST',
-    headers: {
-      'accept': '*/*',
-      'content-type': 'application/soap+xml; charset=utf-8',
-      'accept-encoding':	'gzip, deflate, br',
-      'user-agent': '%E5%8F%B0%E5%8C%97%E6%8D%B7%E9%81%8BGo/1.5.40.5 CFNetwork/1220.1 Darwin/20.3.0',
-      'accept-language': 'zh-tw',
-    },
-    body: `<?xml version="1.0" encoding="utf-8"?>
-    <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-      <soap12:Body>
-        <GetNextTrain2 xmlns="http://tempuri.org/">
-          <stnid>${stnid}</stnid>
-        </GetNextTrain2>
-      </soap12:Body>
-    </soap12:Envelope>`
-  })
-
-  /*
-  const result = await response.text();
-  return new Response(result, {
-    headers: {
-      'content-type': 'application/xml; charset=utf8'
-    }
-  });
-  */
-
+  const response = await fetchNextTrain(stnid);
   const output = {} as Output;
 
   const handler = new MyElementHandler(output);
@@ -86,35 +60,4 @@ class MyElementHandler {
       this.output.nextTrains.push(info);
     }
   }
-}
-
-interface NextTrainInfo {
-  flag: string;
-  priority: string;
-  platform: string;
-  stnid: string;
-  tripno: string;
-  PVID: string;
-  TID: string;
-  destination: string;
-  countdown: string;
-  uptime: string;
-  nowtime: string;
-  diffsec: string;
-  countdownSeconds?: number;
-  calibratedCountdownSeconds?: number;
-  calibratedCountdown?: string;
-}
-
-interface RootInfo {
-  station: string;
-  stationname: string
-  noservice: string,
-  ErrStatement: string;
-  xmlns: string;
-}
-
-interface Output {
-  info: RootInfo;
-  nextTrains: NextTrainInfo[];
 }

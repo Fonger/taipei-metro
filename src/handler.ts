@@ -48,11 +48,12 @@ class MyElementHandler {
       const countdownSeconds = parseCountdown(info.countdown);
 
       if (typeof countdownSeconds === 'number') {
-        const calibratedSeconds = parseInt(info.diffsec) + 10;
+        let calibratedCountdownSeconds =  countdownSeconds - parseInt(info.diffsec) - 10 ;
+        calibratedCountdownSeconds -= calibratedCountdownSeconds % 5;
 
-        let calibratedCountdownSeconds =  countdownSeconds - calibratedSeconds;
-
-        if (calibratedCountdownSeconds < 0) calibratedCountdownSeconds = 0;
+        if (calibratedCountdownSeconds < 0) {
+          calibratedCountdownSeconds = 0;
+        }
 
         info.countdownSeconds = countdownSeconds
         info.calibratedCountdownSeconds = calibratedCountdownSeconds

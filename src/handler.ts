@@ -47,16 +47,21 @@ class MyElementHandler {
 
       const countdownSeconds = parseCountdown(info.countdown);
 
-      const calibratedSeconds = parseInt(info.diffsec) + 10;
+      if (typeof countdownSeconds === 'number') {
+        const calibratedSeconds = parseInt(info.diffsec) + 10;
 
-      let calibratedCountdownSeconds =  countdownSeconds - calibratedSeconds;
+        let calibratedCountdownSeconds =  countdownSeconds - calibratedSeconds;
 
-      if (calibratedCountdownSeconds < 0) calibratedCountdownSeconds = 0;
+        if (calibratedCountdownSeconds < 0) calibratedCountdownSeconds = 0;
 
-      info.countdownSeconds = countdownSeconds
-      info.calibratedCountdownSeconds = calibratedCountdownSeconds
-      info.calibratedCountdown = toCountdown(calibratedCountdownSeconds);
-
+        info.countdownSeconds = countdownSeconds
+        info.calibratedCountdownSeconds = calibratedCountdownSeconds
+        info.calibratedCountdown = toCountdown(calibratedCountdownSeconds);
+      } else {
+        info.countdownSeconds = Number.POSITIVE_INFINITY;
+        info.calibratedCountdownSeconds = Number.POSITIVE_INFINITY;
+        info.calibratedCountdown = countdownSeconds;
+      }
       this.output.nextTrains.push(info);
     }
   }

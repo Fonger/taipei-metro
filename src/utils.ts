@@ -1,4 +1,4 @@
-import { HEADERS } from "./types";
+import { HEADERS, NextTrainInfo } from "./types";
 
 export function render404() {
   return renderJSON('{"error":"Not Found"}', 404);
@@ -17,23 +17,41 @@ export function renderJSON(json: string | object, status = 200) {
   })
 }
 
-const COUNT_DOWN_REGEX = /^(\d{2}):(\d{2})$/;
-export function parseCountdown(input: string): number | string {
-  if (input === '59:50*') {
+export function parseCountdown(info: NextTrainInfo): number | string {
+  const countdown = info.countdown.trim();
+  const diffsec = parseInt(info.diffsec.trim() || '0');
+
+  if (countdown === '00:00' || countdown === '-1') {
+    return 0;
+  } else if (countdown === '59:50*') {
     return '營運時間已過';
-  } else if (input === '59:59*') {
+  } else if (countdown === '59:59*') {
     return '擷取資料中';
-  } else if (input === '59:05*' || input === '59:40') {
+  } else if (countdown === '59:05*' || countdown === '59:40*') {
     return '詳見通知'
   }
 
-  const result = COUNT_DOWN_REGEX.exec(input);
-  if (!result) throw new Error('input is not in 00:00 format');
+  const split = countdown.split(':');
+  const sec = parseInt(split[1]);
 
-  const min = parseInt(result[1] as string);
-  const sec = parseInt(result[2] as string);
+  if (countdown.startsWith('-2')) {
+    if (sec > diffsec) {
+      return 361; // 06:01
+    } else if (diffsec > sec) {
+      return 363; // 06:03
+    }
+    return 367; // 06:07
+  }
 
-  return min * 60 + sec;
+  if (split.length < 2) {
+    return 360; // 06:00
+  }
+
+  const min = parseInt(split[0]);
+  let calibrated = min * 60 + sec - diffsec - 10;
+  calibrated -= calibrated % 5;
+
+  return calibrated > 0 ? calibrated : 0;
 }
 
 export function toCountdown(seconds: number): string {

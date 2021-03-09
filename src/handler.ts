@@ -45,21 +45,12 @@ class MyElementHandler {
       if (!this.output.nextTrains) this.output.nextTrains = [];
       const info = Object.fromEntries(element.attributes) as unknown as NextTrainInfo;
 
-      const countdownSeconds = parseCountdown(info.countdown);
+      const countdownSeconds = parseCountdown(info);
 
       if (typeof countdownSeconds === 'number') {
-        let calibratedCountdownSeconds =  countdownSeconds - parseInt(info.diffsec) - 10 ;
-        calibratedCountdownSeconds -= calibratedCountdownSeconds % 5;
-
-        if (calibratedCountdownSeconds < 0) {
-          calibratedCountdownSeconds = 0;
-        }
-
-        info.countdownSeconds = countdownSeconds
-        info.calibratedCountdownSeconds = calibratedCountdownSeconds
-        info.calibratedCountdown = toCountdown(calibratedCountdownSeconds);
+        info.calibratedCountdownSeconds = countdownSeconds
+        info.calibratedCountdown = toCountdown(countdownSeconds);
       } else {
-        info.countdownSeconds = Number.POSITIVE_INFINITY;
         info.calibratedCountdownSeconds = Number.POSITIVE_INFINITY;
         info.calibratedCountdown = countdownSeconds;
       }

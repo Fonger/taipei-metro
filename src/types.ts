@@ -36,3 +36,17 @@ export interface Output {
   info: RootInfo;
   nextTrains: NextTrainInfo[];
 }
+
+export interface Station {
+  stnid: string;
+  code: string;
+  name: string;
+  line: string;
+  exits: Exit[];
+}
+
+export interface Exit {
+  no: string;
+  longitude: number;
+  latitude: number;
+}

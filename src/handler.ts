@@ -1,11 +1,17 @@
 import { ALL_STATION_IDS, STATION_JSON_STRING } from "./stations";
 import { NextTrainInfo, Output, RootInfo } from "./types";
-import { fetchNextTrain, parseCountdown, render400, render404, renderJSON, toCountdown } from "./utils";
+import { fetchNextTrain, getNearestStations, parseCountdown, render400, render404, renderJSON, toCountdown } from "./utils";
 
 export async function handleRequest(request: Request): Promise<Response> {
   const url = new URL(request.url);
   
   if (url.pathname === '/stations') {
+    const longitude = url.searchParams.get('longitude');
+    const latitude = url.searchParams.get('latitude');
+    if (longitude && latitude) {
+      const stations = getNearestStations(parseFloat(longitude), parseFloat(latitude));
+      return renderJSON(stations);
+    }
     return renderJSON(STATION_JSON_STRING);
   } else if (url.pathname !== '/next-trains') {
     return render404();

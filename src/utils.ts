@@ -1,4 +1,5 @@
-import { HEADERS, NextTrainInfo } from "./types";
+import { stations } from "./stations";
+import { HEADERS, NextTrainInfo, Station } from "./types";
 
 export function render404() {
   return renderJSON('{"error":"Not Found"}', 404);
@@ -111,3 +112,41 @@ export function fetchCartWeight(tripno: string) {
   </soap:Body>
 </soap:Envelope>
 */
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = toRad(lat2-lat1);
+  const dLon = toRad(lon2-lon1);
+  lat1 = toRad(lat1);
+  lat2 = toRad(lat2);
+
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const d = R * c;
+  return d;
+}
+
+function toRad(value: number) {
+    return value * Math.PI / 180;
+}
+
+export function getNearestStations(longitude: number, latitude: number): Station[] {
+  const result: (Station & { distance: number })[] = [];
+
+  for (const station of stations ){
+    for (const exit of station.exits) {
+      const distance = getDistance(latitude, longitude, exit.latitude, exit.longitude);
+      if (distance < 3) {
+        result.push({
+          ...station,
+          distance,
+        });
+        break;
+      }
+    }
+    if (result.length > 5) break;
+  }
+
+  return result.sort((a, b) => a.distance - b.distance);
+}

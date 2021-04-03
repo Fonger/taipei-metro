@@ -145,8 +145,7 @@ export function getNearestStations(longitude: number, latitude: number): Station
         break;
       }
     }
-    if (result.length > 5) break;
   }
 
-  return result.sort((a, b) => a.distance - b.distance);
+  return result.sort((a, b) => a.distance - b.distance).slice(0, 6);
 }

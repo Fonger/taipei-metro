@@ -1,4 +1,4 @@
-import { ALL_STATION_IDS, STATION_JSON_STRING } from "./stations";
+import { ALL_STATION_IDS, STATION_JSON_STRING, stations } from "./stations";
 import { NextTrainInfo, Output, RootInfo } from "./types";
 import { fetchNextTrain, getNearestStations, parseCountdown, render400, render404, renderJSON, toCountdown } from "./utils";
 
@@ -9,14 +9,25 @@ export async function handleRequest(request: Request): Promise<Response> {
     const longitude = url.searchParams.get('longitude');
     const latitude = url.searchParams.get('latitude');
     if (longitude && latitude) {
-      const stations = getNearestStations(parseFloat(longitude), parseFloat(latitude));
-      return renderJSON(stations);
+      const nearStations = getNearestStations(parseFloat(longitude), parseFloat(latitude));
+      return renderJSON(nearStations);
     }
     return renderJSON(STATION_JSON_STRING);
   } else if (url.pathname !== '/next-trains') {
     return render404();
   }
-  const stnid = url.searchParams.get('stnid');
+  let stnid = url.searchParams.get('stnid');
+  let code = url.searchParams.get('code');
+  if (stnid == null) {
+    if (code != null) {
+      code = code.toUpperCase();
+      const station = stations.find(s => s.code === code);
+      if (station) {
+        stnid = station.stnid;
+      }
+    }
+  }
+
   if (!stnid || !ALL_STATION_IDS.includes(stnid)) {
     return render400();
   }

@@ -129,3 +129,32 @@ export interface RawYouBike {
 	 */
 	infoDate?: string;
 }
+
+export interface RawYouBikeStationFromYahoo {
+	id: string;
+	name: string;
+	nameen: string;
+	open: string;
+	total: string;
+	occupied: string;
+	eoccupied: string;
+	lon: string;
+	lat: string;
+	time: string;
+}
+
+export interface YouBikeStationFromYahoo {
+	id: string;
+	name: string;
+	nameen: string;
+	open: boolean;
+	total: number;
+	available: number;
+	totalOccupied: number;
+	eOccupied: number;
+	normalOccupied: number;
+	lon: number;
+	lat: number;
+	time: Date;
+	age: number;
+}

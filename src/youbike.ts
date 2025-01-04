@@ -1,4 +1,4 @@
-import { RawYouBike } from './types';
+import { RawYouBike, RawYouBikeStationFromYahoo, YouBikeStationFromYahoo } from './types';
 
 export async function getYouBikeData(sno?: string | null) {
 	const allData = await Promise.all([
@@ -67,4 +67,78 @@ function transformMday(mday: string) {
 	}
 
 	throw new Error(`Invalid date format: ${mday}`);
+}
+
+export async function getYouBikeDataFromYahoo(ids: string[]) {
+	const res = await fetch('https://busserver.bus.yahoo.com/busserver/bike_tpe.xml');
+	if (!res.body) throw new Error('No body');
+
+	const decompressedStream = res.body.pipeThrough(new DecompressionStream('deflate'));
+	const decompressedResponse = new Response(decompressedStream);
+
+	const textEncoder = new TextEncoder();
+	let isFirst = true;
+
+	const stream = new ReadableStream({
+		async start(controller) {
+			controller.enqueue(textEncoder.encode('['));
+
+			const rewriter = new HTMLRewriter().on('station', {
+				element(element) {
+					const rawStation = {} as RawYouBikeStationFromYahoo;
+
+					for (const [key, value] of element.attributes) {
+						rawStation[key as keyof RawYouBikeStationFromYahoo] = value;
+					}
+
+					if (ids.length > 0 && !ids.includes(rawStation.id)) return;
+
+					const { id, name, nameen, open, total: totalStr, occupied, eoccupied, lon, lat, time } = rawStation;
+
+					const date = transformMday(time);
+					const total = parseInt(totalStr, 10);
+					const totalOccupied = parseInt(occupied, 10);
+					const eOccupied = parseInt(eoccupied, 10);
+					const normalOccupied = totalOccupied - eOccupied;
+					const station: YouBikeStationFromYahoo = {
+						id,
+						name,
+						nameen,
+						open: open === '1',
+						total,
+						available: total - totalOccupied,
+						totalOccupied,
+						normalOccupied,
+						eOccupied,
+						lon: parseFloat(lon),
+						lat: parseFloat(lat),
+						time: date,
+						age: Math.round((Date.now() - date.getTime()) / 1000),
+					};
+
+					if (!station.open) return;
+
+					const jsonChunk = JSON.stringify(station);
+
+					if (!isFirst) {
+						controller.enqueue(textEncoder.encode(','));
+					}
+					isFirst = false;
+
+					controller.enqueue(textEncoder.encode(jsonChunk));
+				},
+			});
+
+			await rewriter.transform(decompressedResponse).text();
+
+			controller.enqueue(textEncoder.encode(']'));
+			controller.close();
+		},
+	});
+
+	return new Response(stream, {
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
 }

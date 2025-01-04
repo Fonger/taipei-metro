@@ -1,13 +1,15 @@
 import { ALL_STATION_IDS, STATION_JSON_STRING, stations } from './stations';
 import { NextTrainInfo, Output, RootInfo } from './types';
 import { fetchNextTrain, getNearestStations, parseCountdown, render400, render404, renderJSON, toCountdown } from './utils';
-import { getYouBikeData } from './youbike';
+import { getYouBikeData, getYouBikeDataFromYahoo } from './youbike';
 
 export async function handleRequest(request: Request): Promise<Response> {
 	const url = new URL(request.url);
 
 	if (url.pathname === '/youbike') {
 		return renderJSON(await getYouBikeData(url.searchParams.get('sno')));
+	} else if (url.pathname === '/youbikeYahoo') {
+		return getYouBikeDataFromYahoo(url.searchParams.getAll('id'));
 	} else if (url.pathname === '/stations') {
 		const longitude = url.searchParams.get('longitude');
 		const latitude = url.searchParams.get('latitude');

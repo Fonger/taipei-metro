@@ -78,6 +78,8 @@ export async function getYouBikeDataFromYahoo(ids: string[]) {
 
 	const textEncoder = new TextEncoder();
 	let isFirst = true;
+	let count = 0;
+	let earlyDone = false;
 
 	const stream = new ReadableStream({
 		async start(controller) {
@@ -85,6 +87,8 @@ export async function getYouBikeDataFromYahoo(ids: string[]) {
 
 			const rewriter = new HTMLRewriter().on('station', {
 				element(element) {
+					if (earlyDone) return;
+
 					const rawStation = {} as RawYouBikeStationFromYahoo;
 
 					for (const [key, value] of element.attributes) {
@@ -126,10 +130,23 @@ export async function getYouBikeDataFromYahoo(ids: string[]) {
 					isFirst = false;
 
 					controller.enqueue(textEncoder.encode(jsonChunk));
+
+					count++;
+
+					if (ids.length > 0 && count === ids.length) {
+						earlyDone = true;
+					}
 				},
 			});
 
-			await rewriter.transform(decompressedResponse).text();
+			const transformStream = rewriter.transform(decompressedResponse).body;
+
+			const reader = transformStream?.getReader();
+
+			while (!earlyDone && reader) {
+				const { done } = await reader.read();
+				if (done) break;
+			}
 
 			controller.enqueue(textEncoder.encode(']'));
 			controller.close();
